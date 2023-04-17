@@ -200,7 +200,5 @@ int main(int ac, char **av)
             return(0) ;
         }
     } 
-    //free(global_info);
-    //free(philos);
     return (0);
 }
