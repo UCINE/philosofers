@@ -14,7 +14,8 @@
 
 int check_args(int ac, char **av)
 {
-    int i, j;
+    int i;
+    int j;
 
     if (ac < 5 || ac > 6)
     {
