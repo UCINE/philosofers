@@ -178,7 +178,7 @@ int main(int ac, char **av)
    while(1)
     {
         i = 0;
-        eat = 1;
+        eat = 0;
         while(i < global_info->num_of_philos)
         {
             pthread_mutex_lock(&philos->global_info->mutex);
