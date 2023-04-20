@@ -47,7 +47,7 @@ int check_args(int ac, char **av)
 
     return (0);
 }
-void initiaphilo(t_philo *philos, t_info *global_info)
+void initialphilos(t_philo *philos, t_info *global_info)
 {
     int i = 0;
     t_philo *tmp;
@@ -165,7 +165,7 @@ int main(int ac, char **av)
     thread = malloc(sizeof(pthread_t) * global_info->num_of_philos);
     if (ac == 6)
         global_info->num_of_times_each_philo_must_eat = ft_atoi(av[5]);
-    initiaphilo(philos, global_info);
+    initilaphilos(philos, global_info);
     while(i < global_info->num_of_philos)
     {
          if (pthread_create(&thread[i], NULL, &soooon, philos) != 0)
