@@ -50,5 +50,4 @@ typedef struct s_philo
 	t_info	*global_info;
 }	t_philo;
 
-void start_threads(t_philo *philos, t_info *global_info);
 #endif
