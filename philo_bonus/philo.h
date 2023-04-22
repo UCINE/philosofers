@@ -10,14 +10,17 @@
 /*                                                                            */
 /* ************************************************************************** */
 
+
 # ifndef PHILO_H
 # define PHILO_H
 
-# include <stdio.h>
-# include <unistd.h>
-# include <stdlib.h>
-# include <pthread.h>
-# include <limits.h>
+#include <stdio.h>
+#include <stdlib.h>
+#include <unistd.h>
+#include <pthread.h>
+#include <fcntl.h>
+#include <semaphore.h>
+#include <sys/wait.h>
 #include <sys/time.h>
 
 
@@ -31,23 +34,26 @@ typedef struct s_info
 	int				time_to_eat;
 	int				time_to_sleep;
 	int				num_of_times_each_philo_must_eat;
-	long			start_time;
+	unsigned long			start_time;
+	sem_t * msg_sem;
 	pthread_mutex_t	msg_mutex;
+	sem_t * msg_lock;
 	pthread_mutex_t	mutex;
+	int number_eat;
+	sem_t *forks;
 }	t_info;
 
 typedef struct s_philo
 {
 	int				id;
 	int				num_of_times_eaten;
-	long			last_time_ate;
+	unsigned long			last_time_ate;
 	pthread_t		philo_thread;
-	pthread_mutex_t	*left_fork_mutex;
-	pthread_mutex_t	*right_fork_mutex;
 	struct s_philo *left;
 	struct s_philo *right;
-	pthread_mutex_t	fork;
 	t_info	*global_info;
+	pthread_t thread; 
+	int fd;
 }	t_philo;
 
 #endif

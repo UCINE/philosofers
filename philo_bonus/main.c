@@ -14,19 +14,14 @@
 
 int check_args(int ac, char **av)
 {
-    int i;
-    int j;
+    int i, j;
 
     if (ac < 5 || ac > 6)
     {
         write(2, "Error: wrong number of arguments\n", 33);
         return (1);
     }
-    // else if (ft_atoi(av[1]) < 2)
-    // {
-    //     write(2, "Error: number of philosophers should be at least 2\n", 51);
-    //     return (1);
-    // }
+	
     else if (ft_atoi(av[2]) <= ft_atoi(av[3]) || ft_atoi(av[2]) <= ft_atoi(av[4]))
     {
         write(2, "Error: time_to_die should be greater than time_to_eat and time_to_sleep\n", 72);
@@ -47,7 +42,8 @@ int check_args(int ac, char **av)
 
     return (0);
 }
-void initialphilos(t_philo *philos, t_info *global_info)
+
+void initiaphilo(t_philo *philos, t_info *global_info)
 {
     int i = 0;
     t_philo *tmp;
@@ -62,10 +58,7 @@ void initialphilos(t_philo *philos, t_info *global_info)
         philos->global_info = global_info;
         philos->last_time_ate = global_info->start_time;
         philos->num_of_times_eaten = 0;
-        if (pthread_mutex_init(&philos->fork, NULL) != 0)
-        {
-            exit_program("Mutex initialization failed");
-        }
+        philos->fd = 0;
         if (i < global_info->num_of_philos - 1)
         {
             philos->left = malloc(sizeof(t_philo));
@@ -77,34 +70,35 @@ void initialphilos(t_philo *philos, t_info *global_info)
             tmp->right = philos;
             philos->left = tmp;
         }
-        i++;  
+        i++;
     }
 }
 
-long get_time(void)
+unsigned long get_time(void)
 {
     struct timeval c;
 
     gettimeofday(&c, NULL);
     return (c.tv_sec * 1000 + c.tv_usec / 1000);
 }
-void ft_usleep(int time)
-{
-    long c;
+void ft_usleep(unsigned long time)
+{ 
+    unsigned long c;
     
     c = get_time();
     while(get_time() - c < time)
     {
-        usleep(100);
+        usleep(300);
     }
 }
+/*
 void *soooon(void *t)
 {
     t_philo			*philos;
 
     philos = (t_philo *)t;
     if (philos->id % 2 == 0)
-        usleep(1000);
+        usleep(10 * 1000);
     while(1)
     {
         pthread_mutex_lock(&philos->fork);
@@ -113,22 +107,54 @@ void *soooon(void *t)
         printf("%ld philo %d has taken forks\n", get_time() - philos->global_info->start_time, philos->id);
         printf("%ld philo %d is eating\n", get_time() - philos->global_info->start_time, philos->id);
         pthread_mutex_unlock(&philos->global_info->msg_mutex);
-        ft_usleep(philos->global_info->time_to_eat);
-                pthread_mutex_lock(&philos->global_info->mutex);
-
-        philos->num_of_times_eaten++;
-
+        pthread_mutex_lock(&philos->global_info->mutex);
         philos->last_time_ate = get_time();
-                pthread_mutex_unlock(&philos->global_info->mutex);
+        pthread_mutex_unlock(&philos->global_info->mutex);
+        ft_usleep((unsigned long)philos->global_info->time_to_eat);
+        pthread_mutex_lock(&philos->global_info->mutex);
+        philos->num_of_times_eaten++;
+        pthread_mutex_unlock(&philos->global_info->mutex);
         pthread_mutex_unlock(&philos->left->fork);
         pthread_mutex_unlock(&philos->fork);
         pthread_mutex_lock(&philos->global_info->msg_mutex);
         printf("%ld philo %d is sleeping\n", get_time() - philos->global_info->start_time, philos->id);
         pthread_mutex_unlock(&philos->global_info->msg_mutex);
-        ft_usleep(philos->global_info->time_to_sleep);
+        ft_usleep((unsigned long)philos->global_info->time_to_sleep);
         pthread_mutex_lock(&philos->global_info->msg_mutex);
         printf("%ld philo %d is thinkig\n", get_time() - philos->global_info->start_time, philos->id);
         pthread_mutex_unlock(&philos->global_info->msg_mutex);
+    }
+}*/
+
+void *philo_routine(void *arg)
+{
+    t_philo *philo;
+
+    philo = (t_philo *)arg;
+    while (1)
+    {
+        sem_wait(philo->global_info->forks);
+        sem_wait(philo->global_info->forks);
+        sem_wait(philo->global_info->msg_sem);
+        printf("%ld philo %d has taken a fork\n", get_time() - philo->global_info->start_time, philo->id);
+        printf("%ld philo %d has taken a fork\n", get_time() - philo->global_info->start_time, philo->id);
+        sem_post(philo->global_info->msg_sem);
+        philo->last_time_ate = get_time();
+        sem_wait(philo->global_info->msg_sem);
+        printf("%ld philo %d is eating\n", get_time() - philo->global_info->start_time, philo->id);
+        sem_post(philo->global_info->msg_sem);
+        ft_usleep(philo->global_info->time_to_eat );
+        sem_post(philo->forks);
+        sem_post(philo->forks);
+        if (++philo->num_of_times_eaten == philo->global_info->num_of_times_each_philo_must_eat)
+            return (NULL);
+        sem_wait(philo->global_info->msg_sem);
+        printf("%ld philo %d is sleeping\n", get_time() - philo->global_info->start_time, philo->id);
+        sem_post(philo->global_info->msg_sem);
+        ft_usleep(philo->global_info->time_to_sleep);
+        sem_wait(philo->global_info->msg_sem);
+        printf("%ld philo %d is thinking\n", get_time() - philo->global_info->start_time, philo->id);
+        sem_post(philo->global_info->msg_sem);
     }
 }
 
@@ -137,9 +163,7 @@ int main(int ac, char **av)
     int				num_of_philos;
     t_philo			*philos;
     t_info			*global_info;
-    pthread_t       *thread;
     int i;
-   int eat = 0;
 
     i = 0;
     if (check_args(ac, av))
@@ -153,39 +177,59 @@ int main(int ac, char **av)
     global_info->time_to_die = ft_atoi(av[2]);
     global_info->time_to_eat = ft_atoi(av[3]);
     global_info->time_to_sleep = ft_atoi(av[4]);
-    if (pthread_mutex_init(&global_info->mutex, NULL) != 0)
-    {
-        exit_program("Mutex initialization failed");
-    }
-    if (pthread_mutex_init(&global_info->msg_mutex, NULL) != 0)
-    {
-        exit_program("Mutex initialization failed");
-    }
+    unlink("/msg_lock");
+    unlink("/msg_sem");
+    if (sem_open("/msg_lock",O_CREAT,0644,1) ==  SEM_FAILED)
+        exit_program("semphore initialization failed1");  
+    if (sem_open("/msg_sem",O_CREAT,0644,1)== SEM_FAILED)
+        exit_program("semphore initialization failed");
+    if (sem_open("/forks",O_CREAT,0644,num_of_philos) ==  SEM_FAILED)
+        exit_program("semphore initialization failed");
     global_info->num_of_times_each_philo_must_eat = -42;
-    thread = malloc(sizeof(pthread_t) * global_info->num_of_philos);
+    //thread = malloc(sizeof(pthread_t) * global_info->num_of_philos);
     if (ac == 6)
         global_info->num_of_times_each_philo_must_eat = ft_atoi(av[5]);
-    initilaphilos(philos, global_info);
+    initiaphilo(philos, global_info);
     while(i < global_info->num_of_philos)
     {
+        philos->fd = fork();
+            if(philos->fd == -1)
+                exit(1); 
+            if(philos.fd == 0)
+            {
+                if(pthread_create(philos.,,,))
+                {
+                    
+                }
+                exit(0);
+            }
+        philos= philos->left;
+        i++;
+    }
+  
+    return (0);
+}
+ /*
+ while(i <= global_info->num_of_philos)
+    {
+        
          if (pthread_create(&thread[i], NULL, &soooon, philos) != 0)
-        {
             exit_program("Thread creation failed");
-        }
         pthread_detach(thread[i]);
         philos= philos->left;
         i++;
     }
-   while(1)
+    
+ while(1)
     {
         i = 0;
-        eat = 0;
+        eat = 1;
         while(i < global_info->num_of_philos)
         {
             pthread_mutex_lock(&philos->global_info->mutex);
             if (global_info->num_of_times_each_philo_must_eat != -42 && philos->num_of_times_eaten >=  global_info->num_of_times_each_philo_must_eat)
             eat++;
-            if (get_time() - philos->last_time_ate > global_info->time_to_die)
+            if (get_time() - philos->last_time_ate > (unsigned long)global_info->time_to_die)
             {
                 pthread_mutex_lock(&philos->global_info->msg_mutex);
                 printf("%ld philo %d is dead\n", get_time() - philos->global_info->start_time, philos->id);
@@ -200,6 +244,4 @@ int main(int ac, char **av)
             pthread_mutex_lock(&philos->global_info->msg_mutex);
             return(0) ;
         }
-    } 
-    return (0);
-}
+    }*/
