@@ -22,11 +22,6 @@ int check_args(int ac, char **av)
         write(2, "Error: wrong number of arguments\n", 33);
         return (1);
     }
-    // else if (ft_atoi(av[1]) < 2)
-    // {
-    //     write(2, "Error: number of philosophers should be at least 2\n", 51);
-    //     return (1);
-    // }
     else if (ft_atoi(av[2]) <= ft_atoi(av[3]) || ft_atoi(av[2]) <= ft_atoi(av[4]))
     {
         write(2, "Error: time_to_die should be greater than time_to_eat and time_to_sleep\n", 72);
