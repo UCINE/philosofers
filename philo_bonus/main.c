@@ -123,28 +123,35 @@ void *philo_routine(void *arg)
         sem_post(philo->global_info->msg_sem);
     }
 }
-void wait_for_threads_to_finish(pthread_t *threads, int num_threads)
+void wait_for_threads_to_finish(pthread_t *threads, int num_of_philos)
 {
-    for (int i = 0; i < num_threads; i++)
+    int i;
+
+    i = 0;
+    while (i < num_of_philos)
     {
         pthread_join(threads[i], NULL);
+        i++;
     }
 }
 
+
 int main(int ac, char **av)
 {
-    int				num_of_philos;
-    t_philo			*philos;
-    t_info			*global_info;
+    int num_of_philos;
+    t_philo *philos;
+    t_info *global_info;
+    pthread_t *threads;
     int i;
 
     i = 0;
     if (check_args(ac, av))
         return (1);
     num_of_philos = ft_atoi(av[1]);
-    philos = malloc(sizeof(t_philo));
+    philos = malloc(sizeof(t_philo) * num_of_philos);
     global_info = malloc(sizeof(t_info));
-    if (!philos || !global_info)
+    threads = malloc(sizeof(pthread_t) * num_of_philos);
+    if (!philos || !global_info || !threads)
         return (1);
     global_info->num_of_philos = num_of_philos;
     global_info->time_to_die = ft_atoi(av[2]);
@@ -159,28 +166,20 @@ int main(int ac, char **av)
     if (sem_open("/forks",O_CREAT,0644,num_of_philos) ==  SEM_FAILED)
         exit_program("semphore initialization failed");
     global_info->num_of_times_each_philo_must_eat = -42;
-    //thread = malloc(sizeof(pthread_t) * global_info->num_of_philos);
     if (ac == 6)
         global_info->num_of_times_each_philo_must_eat = ft_atoi(av[5]);
-    initiaphilo(philos, global_info);
+    initialize_philos(philos, global_info);
     while (i < num_of_philos)
     {
-        philos[i].fd = fork();
-        if (philos[i].fd == -1)
-            exit_program("fork failed");
-        if (philos[i].fd == 0)
-        {
-            philosopher_routine(&philos[i]);
-            exit(0);
-        }
+        if (pthread_create(&threads[i], NULL, philo_routine, &philos[i]))
+            exit_program("Error: pthread_create() failed");
         i++;
     }
-    wait_for_threads_to_finish(num_of_philos);
+    wait_for_threads_to_finish(threads, num_of_philos);
     return (0);
 }
-  
-    return (0);
-}
+
+
  /*
  while(i <= global_info->num_of_philos)
     {

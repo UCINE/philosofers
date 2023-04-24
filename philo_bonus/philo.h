@@ -52,7 +52,7 @@ typedef struct s_philo
 	struct s_philo *left;
 	struct s_philo *right;
 	t_info	*global_info;
-	pthread_t thread; 
+	pthread_t *thread; 
 	int fd;
 }	t_philo;
 
