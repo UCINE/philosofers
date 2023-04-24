@@ -123,17 +123,17 @@ void *philo_routine(void *arg)
         sem_post(philo->global_info->msg_sem);
     }
 }
-void wait_for_threads_to_finish(pthread_t *threads, int num_of_philos)
-{
-    int i;
+// void wait_for_threads_to_finish(pthread_t *threads, int num_of_philos)
+// {
+//     int i;
 
-    i = 0;
-    while (i < num_of_philos)
-    {
-        pthread_join(threads[i], NULL);
-        i++;
-    }
-}
+//     i = 0;
+//     while (i < num_of_philos)
+//     {
+//         pthread_join(threads[i], NULL);
+//         i++;
+//     }
+// }
 
 
 int main(int ac, char **av)
@@ -160,24 +160,42 @@ int main(int ac, char **av)
     unlink("/msg_lock");
     unlink("/msg_sem");
     if (sem_open("/msg_lock",O_CREAT,0644,1) ==  SEM_FAILED)
-        exit_program("semphore initialization failed1");  
+        exit_program("semaphore initialization failed1");  
     if (sem_open("/msg_sem",O_CREAT,0644,1)== SEM_FAILED)
-        exit_program("semphore initialization failed");
+        exit_program("semaphore initialization failed");
     if (sem_open("/forks",O_CREAT,0644,num_of_philos) ==  SEM_FAILED)
-        exit_program("semphore initialization failed");
+        exit_program("semaphore initialization failed");
     global_info->num_of_times_each_philo_must_eat = -42;
     if (ac == 6)
         global_info->num_of_times_each_philo_must_eat = ft_atoi(av[5]);
     initialize_philos(philos, global_info);
+    
     while (i < num_of_philos)
     {
-        if (pthread_create(&threads[i], NULL, philo_routine, &philos[i]))
-            exit_program("Error: pthread_create() failed");
+        // Each philosopher is assigned a process
+        philos[i].fd = fork();
+        if (philos[i].fd == -1)
+            exit_program("fork failed");
+        if (philos[i].fd == 0)
+        {
+            // Child process
+            philosopher_routine(&philos[i]);
+            exit(0);
+        }
         i++;
     }
-    wait_for_threads_to_finish(threads, num_of_philos);
+
+    // Parent process waits for all child processes to finish
+    i = 0;
+    while (i < num_of_philos)
+    {
+        wait(NULL);
+        i++;
+    }
+
     return (0);
 }
+
 
 
  /*
