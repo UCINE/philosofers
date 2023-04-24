@@ -91,40 +91,6 @@ void ft_usleep(unsigned long time)
         usleep(300);
     }
 }
-/*
-void *soooon(void *t)
-{
-    t_philo			*philos;
-
-    philos = (t_philo *)t;
-    if (philos->id % 2 == 0)
-        usleep(10 * 1000);
-    while(1)
-    {
-        pthread_mutex_lock(&philos->fork);
-        pthread_mutex_lock(&philos->left->fork);
-        pthread_mutex_lock(&philos->global_info->msg_mutex);
-        printf("%ld philo %d has taken forks\n", get_time() - philos->global_info->start_time, philos->id);
-        printf("%ld philo %d is eating\n", get_time() - philos->global_info->start_time, philos->id);
-        pthread_mutex_unlock(&philos->global_info->msg_mutex);
-        pthread_mutex_lock(&philos->global_info->mutex);
-        philos->last_time_ate = get_time();
-        pthread_mutex_unlock(&philos->global_info->mutex);
-        ft_usleep((unsigned long)philos->global_info->time_to_eat);
-        pthread_mutex_lock(&philos->global_info->mutex);
-        philos->num_of_times_eaten++;
-        pthread_mutex_unlock(&philos->global_info->mutex);
-        pthread_mutex_unlock(&philos->left->fork);
-        pthread_mutex_unlock(&philos->fork);
-        pthread_mutex_lock(&philos->global_info->msg_mutex);
-        printf("%ld philo %d is sleeping\n", get_time() - philos->global_info->start_time, philos->id);
-        pthread_mutex_unlock(&philos->global_info->msg_mutex);
-        ft_usleep((unsigned long)philos->global_info->time_to_sleep);
-        pthread_mutex_lock(&philos->global_info->msg_mutex);
-        printf("%ld philo %d is thinkig\n", get_time() - philos->global_info->start_time, philos->id);
-        pthread_mutex_unlock(&philos->global_info->msg_mutex);
-    }
-}*/
 
 void *philo_routine(void *arg)
 {
@@ -155,6 +121,13 @@ void *philo_routine(void *arg)
         sem_wait(philo->global_info->msg_sem);
         printf("%ld philo %d is thinking\n", get_time() - philo->global_info->start_time, philo->id);
         sem_post(philo->global_info->msg_sem);
+    }
+}
+void wait_for_threads_to_finish(pthread_t *threads, int num_threads)
+{
+    for (int i = 0; i < num_threads; i++)
+    {
+        pthread_join(threads[i], NULL);
     }
 }
 
@@ -190,22 +163,21 @@ int main(int ac, char **av)
     if (ac == 6)
         global_info->num_of_times_each_philo_must_eat = ft_atoi(av[5]);
     initiaphilo(philos, global_info);
-    while(i < global_info->num_of_philos)
+    while (i < num_of_philos)
     {
-        philos->fd = fork();
-            if(philos->fd == -1)
-                exit(1); 
-            if(philos.fd == 0)
-            {
-                if(pthread_create())
-                {
-                    
-                }
-                exit(0);
-            }
-        philos= philos->left;
+        philos[i].fd = fork();
+        if (philos[i].fd == -1)
+            exit_program("fork failed");
+        if (philos[i].fd == 0)
+        {
+            philosopher_routine(&philos[i]);
+            exit(0);
+        }
         i++;
     }
+    wait_for_threads_to_finish(num_of_philos);
+    return (0);
+}
   
     return (0);
 }
