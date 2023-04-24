@@ -197,7 +197,7 @@ int main(int ac, char **av)
                 exit(1); 
             if(philos.fd == 0)
             {
-                if(pthread_create(philos.,,,))
+                if(pthread_create())
                 {
                     
                 }
