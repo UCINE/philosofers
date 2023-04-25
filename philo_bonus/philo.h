@@ -23,7 +23,6 @@
 #include <sys/wait.h>
 #include <sys/time.h>
 
-
 int	ft_atoi(const char *str);
 void exit_program(const char* error_message);
 
