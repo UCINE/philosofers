@@ -123,18 +123,6 @@ void *philo_routine(void *arg)
         sem_post(philo->global_info->msg_sem);
     }
 }
-// void wait_for_threads_to_finish(pthread_t *threads, int num_of_philos)
-// {
-//     int i;
-
-//     i = 0;
-//     while (i < num_of_philos)
-//     {
-//         pthread_join(threads[i], NULL);
-//         i++;
-//     }
-// }
-
 
 int main(int ac, char **av)
 {
