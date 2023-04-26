@@ -19,6 +19,7 @@
 #include <unistd.h>
 #include <pthread.h>
 #include <fcntl.h>
+#include <signal.h>
 #include <semaphore.h>
 #include <sys/wait.h>
 #include <sys/time.h>
@@ -29,10 +30,10 @@ void exit_program(const char* error_message);
 typedef struct s_info
 {
 	int				num_of_philos;
-	int				time_to_die;
-	int				time_to_eat;
-	int				time_to_sleep;
 	int				num_of_times_each_philo_must_eat;
+	unsigned long				time_to_die;
+	unsigned long				time_to_eat;
+	unsigned long				time_to_sleep;
 	unsigned long			start_time;
 	sem_t * msg_sem;
 	pthread_mutex_t	msg_mutex;
@@ -54,5 +55,6 @@ typedef struct s_philo
 	pthread_t *thread; 
 	int fd;
 }	t_philo;
+void check_dead(t_philo *philos);
 
 #endif
