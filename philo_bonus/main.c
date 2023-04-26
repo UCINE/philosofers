@@ -6,7 +6,7 @@
 /*   By: lahamoun <lahamoun@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2023/03/08 04:14:07 by lahamoun          #+#    #+#             */
-/*   Updated: 2023/04/26 16:04:46 by lahamoun         ###   ########.fr       */
+/*   Updated: 2023/04/26 16:27:34 by lahamoun         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -109,15 +109,11 @@ void *philosopher_routine(void *arg)
         sem_wait(philo->global_info->msg_sem);
         printf("%ld philo %d is eating\n", get_time() - philo->global_info->start_time, philo->id);
         sem_post(philo->global_info->msg_sem);
-        // if (++philo->num_of_times_eaten == philo->global_info->num_of_times_each_philo_must_eat)
-        // {
-        //     sem_post(philo->global_info->forks);
-        //     sem_post(philo->global_info->forks);
-        //     exit(0);
-        // }
         ft_usleep(philo->global_info->time_to_eat );
         sem_post(philo->global_info->forks);
         sem_post(philo->global_info->forks);
+        if (++philo->num_of_times_eaten == philo->global_info->num_of_times_each_philo_must_eat)
+            exit(0);
         sem_wait(philo->global_info->msg_sem);
         printf("%ld philo %d is sleeping\n", get_time() - philo->global_info->start_time, philo->id);
         sem_post(philo->global_info->msg_sem);

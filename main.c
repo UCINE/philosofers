@@ -6,7 +6,7 @@
 /*   By: lahamoun <lahamoun@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2023/03/08 04:14:07 by lahamoun          #+#    #+#             */
-/*   Updated: 2023/03/30 06:22:46 by lahamoun         ###   ########.fr       */
+/*   Updated: 2023/04/26 17:19:00 by lahamoun         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -42,7 +42,7 @@ int check_args(int ac, char **av)
 
     return (0);
 }
-void initialphilos(t_philo *philos, t_info *global_info)
+void initilaphilos(t_philo *philos, t_info *global_info)
 {
     int i = 0;
     t_philo *tmp;
@@ -83,6 +83,7 @@ long get_time(void)
     gettimeofday(&c, NULL);
     return (c.tv_sec * 1000 + c.tv_usec / 1000);
 }
+
 void ft_usleep(int time)
 {
     long c;
@@ -93,6 +94,7 @@ void ft_usleep(int time)
         usleep(100);
     }
 }
+
 void *soooon(void *t)
 {
     t_philo			*philos;
@@ -105,18 +107,20 @@ void *soooon(void *t)
         pthread_mutex_lock(&philos->fork);
         pthread_mutex_lock(&philos->left->fork);
         pthread_mutex_lock(&philos->global_info->msg_mutex);
+        pthread_mutex_lock(&philos->global_info->mutex);
+        philos->last_time_ate = get_time();
+        pthread_mutex_unlock(&philos->global_info->mutex);
         printf("%ld philo %d has taken forks\n", get_time() - philos->global_info->start_time, philos->id);
         printf("%ld philo %d is eating\n", get_time() - philos->global_info->start_time, philos->id);
         pthread_mutex_unlock(&philos->global_info->msg_mutex);
         ft_usleep(philos->global_info->time_to_eat);
-                pthread_mutex_lock(&philos->global_info->mutex);
-
-        philos->num_of_times_eaten++;
-
-        philos->last_time_ate = get_time();
-                pthread_mutex_unlock(&philos->global_info->mutex);
         pthread_mutex_unlock(&philos->left->fork);
         pthread_mutex_unlock(&philos->fork);
+        pthread_mutex_lock(&philos->global_info->mutex);
+        // philos->num_of_times_eaten++;
+         if(++philos->num_of_times_eaten == philos->global_info->num_of_times_each_philo_must_eat)
+                return (pthread_mutex_unlock(&philos->global_info->mutex), NULL);
+        pthread_mutex_unlock(&philos->global_info->mutex);
         pthread_mutex_lock(&philos->global_info->msg_mutex);
         printf("%ld philo %d is sleeping\n", get_time() - philos->global_info->start_time, philos->id);
         pthread_mutex_unlock(&philos->global_info->msg_mutex);
@@ -178,8 +182,8 @@ int main(int ac, char **av)
         while(i < global_info->num_of_philos)
         {
             pthread_mutex_lock(&philos->global_info->mutex);
-            if (global_info->num_of_times_each_philo_must_eat != -42 && philos->num_of_times_eaten >=  global_info->num_of_times_each_philo_must_eat)
-            eat++;
+            if (philos->num_of_times_eaten ==  global_info->num_of_times_each_philo_must_eat)
+                eat++;
             if (get_time() - philos->last_time_ate > global_info->time_to_die)
             {
                 pthread_mutex_lock(&philos->global_info->msg_mutex);
@@ -190,11 +194,12 @@ int main(int ac, char **av)
             philos = philos->left;
             i++;
         }
-        if (eat >= global_info->num_of_philos)
+        if (eat == global_info->num_of_philos)
         {
             pthread_mutex_lock(&philos->global_info->msg_mutex);
             return(0) ;
         }
+        usleep(1000);
     } 
     return (0);
 }

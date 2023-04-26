@@ -6,7 +6,7 @@
 #    By: lahamoun <lahamoun@student.42.fr>          +#+  +:+       +#+         #
 #                                                 +#+#+#+#+#+   +#+            #
 #    Created: 2023/03/08 04:14:24 by lahamoun          #+#    #+#              #
-#    Updated: 2023/03/30 23:06:33 by lahamoun         ###   ########.fr        #
+#    Updated: 2023/04/26 17:17:56 by lahamoun         ###   ########.fr        #
 #                                                                              #
 # **************************************************************************** #
 
@@ -18,7 +18,8 @@ OBJS	=$(SRC:.c=.o)
 
 CC = cc 
 
-CFLAGS	= -Wall -Wextra -Werror -fsanitize=thread -g
+CFLAGS	= -Wall -Wextra -Werror 
+#-fsanitize=thread -g
 
 NAME	= philo
 
