@@ -153,13 +153,9 @@ int main(int ac, char **av)
     global_info->time_to_eat = ft_atoi(av[3]);
     global_info->time_to_sleep = ft_atoi(av[4]);
     if (pthread_mutex_init(&global_info->mutex, NULL) != 0)
-    {
         exit_program("Mutex initialization failed");
-    }
     if (pthread_mutex_init(&global_info->msg_mutex, NULL) != 0)
-    {
         exit_program("Mutex initialization failed");
-    }
     global_info->num_of_times_each_philo_must_eat = -42;
     thread = malloc(sizeof(pthread_t) * global_info->num_of_philos);
     if (ac == 6)
